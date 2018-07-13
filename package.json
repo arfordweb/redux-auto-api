@@ -21,5 +21,26 @@
     "ramda": "^0.25.0",
     "redux-thunk": "^2.3.0",
     "reselect": "^3.0.1"
-  }
+  },
+  "description": "Automatically generate your Redux API interactions",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sellerlabs/redux-auto-api.git"
+  },
+  "keywords": [
+    "redux",
+    "api",
+    "get",
+    "post",
+    "patch",
+    "delete"
+  ],
+  "author": "Darnell Arford",
+  "bugs": {
+    "url": "https://github.com/sellerlabs/redux-auto-api/issues"
+  },
+  "homepage": "https://github.com/sellerlabs/redux-auto-api#readme"
 }
