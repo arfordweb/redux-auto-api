@@ -50,3 +50,7 @@ export {
 export {
   default as withReductions,
 } from './withReductions'
+
+export {
+  default as generateSelectors,
+} from './generateSelectors'
