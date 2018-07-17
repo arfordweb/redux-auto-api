@@ -33,7 +33,7 @@
     "build": "rollup -c ./rollup.config.js",
     "watch": "rollup -c ./rollup.config.js --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postpublish": "npm run build"
+    "install": "npm run build"
   },
   "repository": {
     "type": "git",
