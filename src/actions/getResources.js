@@ -35,6 +35,7 @@ function getResources(
 ) {
   return async (dispatch, getState) => {
     const computedOptions = {
+      ...defaultOptions,
       ...options,
       ...(options || {}).GET,
     }
