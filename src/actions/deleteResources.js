@@ -110,65 +110,67 @@ export const defaultOptions = {
  * @param {object|Array} resourcesToDelete
  *                                  Supplied when dispatched: The resource objects to be deleted
  */
-const deleteResources = (
+function deleteResources(
   namespace,
   endpoint,
   options,
   // params specific to this action
   resourcesToDelete,
-) => async (dispatch, getState) => {
-  const computedOptions = {
-    ...defaultOptions,
-    ...options,
-    ...(options || {}).DELETE,
-  }
-  const {
-    debug,
-    deleteFunc,
-    deleteOptimistic,
-    deleteTargetsToRequestDataArray,
-    deleteRequestDataToDataArray,
-    handleDeleteFailure,
-  } = computedOptions
-  const debugLog = createDebugLog(debug)
-  debugLog('DEBUG autoReduxApi: `deleteResources` (1 of 2) arguments:', {
-    namespace, endpoint, options, resourcesToDelete, computedOptions,
-  })
-  if (typeof deleteFunc !== 'function') {
-    throw new Error('In `autoReduxApi`, `deleteFunc` not specified; Must be a function')
-  }
-  const getActionType = phase => `${namespace}/${deleteOptimistic
-    ? 'OPT'
-    : 'PESS'
-  }_DELETE_${phase}`
-
-  // get Array of resources targeted for deletion
-  const targetResources = resourcesToDelete instanceof Array
-    ? resourcesToDelete
-    : [resourcesToDelete]
-  const requestDataObjs = deleteTargetsToRequestDataArray(computedOptions, targetResources)
-  debugLog('DEBUG autoReduxApi: `deleteResources` (2 of 2) computed values:', {
-    requestDataObjs, targetResources,
-  })
-
-  requestDataObjs.forEach(async (requestData) => {
-    const data = deleteRequestDataToDataArray(computedOptions, targetResources, requestData)
-    dispatch({ data, requestData, type: getActionType('START') })
-    try {
-      const { data: responseData } = await deleteFunc(endpoint, { data: requestData })
-      // NOTE: Not currently separating DELETE operations into partial successes and failures
-      dispatch({
-        data,
-        requestData,
-        responseData,
-        type: getActionType('SUCCESS'),
-      })
-    } catch (error) {
-      dispatch({
-        data, error, requestData, type: getActionType('FAIL'),
-      })
-      handleDeleteFailure(computedOptions, error, requestData, null, dispatch, getState)
+) {
+  return async (dispatch, getState) => {
+    const computedOptions = {
+      ...defaultOptions,
+      ...options,
+      ...(options || {}).DELETE,
     }
-  })
+    const {
+      debug,
+      deleteFunc,
+      deleteOptimistic,
+      deleteTargetsToRequestDataArray,
+      deleteRequestDataToDataArray,
+      handleDeleteFailure,
+    } = computedOptions
+    const debugLog = createDebugLog(debug)
+    debugLog('DEBUG autoReduxApi: `deleteResources` (1 of 2) arguments:', {
+      namespace, endpoint, options, resourcesToDelete, computedOptions,
+    })
+    if (typeof deleteFunc !== 'function') {
+      throw new Error('In `autoReduxApi`, `deleteFunc` not specified; Must be a function')
+    }
+    const getActionType = phase => `${namespace}/${deleteOptimistic
+      ? 'OPT'
+      : 'PESS'
+    }_DELETE_${phase}`
+
+    // get Array of resources targeted for deletion
+    const targetResources = resourcesToDelete instanceof Array
+      ? resourcesToDelete
+      : [resourcesToDelete]
+    const requestDataObjs = deleteTargetsToRequestDataArray(computedOptions, targetResources)
+    debugLog('DEBUG autoReduxApi: `deleteResources` (2 of 2) computed values:', {
+      requestDataObjs, targetResources,
+    })
+
+    requestDataObjs.forEach(async (requestData) => {
+      const data = deleteRequestDataToDataArray(computedOptions, targetResources, requestData)
+      dispatch({ data, requestData, type: getActionType('START') })
+      try {
+        const { data: responseData } = await deleteFunc(endpoint, { data: requestData })
+        // NOTE: Not currently separating DELETE operations into partial successes and failures
+        dispatch({
+          data,
+          requestData,
+          responseData,
+          type: getActionType('SUCCESS'),
+        })
+      } catch (error) {
+        dispatch({
+          data, error, requestData, type: getActionType('FAIL'),
+        })
+        handleDeleteFailure(computedOptions, error, requestData, null, dispatch, getState)
+      }
+    })
+  }
 }
 export default { deleteResources }

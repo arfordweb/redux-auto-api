@@ -1,3 +1,6 @@
+import 'babel-polyfill'
+
+
 export {
   default as getResources,
   defaultOptions as defaultOptionsGet,

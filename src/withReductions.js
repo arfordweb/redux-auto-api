@@ -87,6 +87,7 @@ const withReductions = (
   const reducerFuncMap = flattenFuncMap(operationReducers, namespace)
 
   return (state, action) => {
+    const baseInitialState = baseReducer(undefined, action)
     if (!state) {
       return {
         data: {},
@@ -97,7 +98,7 @@ const withReductions = (
         order: [],
         preDeleteResources: {},
         prePatchResources: {},
-        ...baseReducer(undefined, action), // get initialState from baseReducer
+        ...baseInitialState,
       }
     }
     const reducerFunc = reducerFuncMap[action.type]

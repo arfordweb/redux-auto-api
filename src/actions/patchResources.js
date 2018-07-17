@@ -46,9 +46,9 @@ export const defaultOptions = {
  *                                          state from the Redux store
  *                                      Any values returned by this function will be ignored
  *
-*                                   - {function} patchFunc - (Required) A function that accepts
-*                                     the arguments (endpoint, params) and returns a Promise
-*
+ *                                  - {function} patchFunc - (Required) A function that accepts
+ *                                    the arguments (endpoint, params) and returns a Promise
+ *
  *                                  - {boolean} patchOptimistic - (Defaults to `true`) Set to
  *                                    `false` if the PATCH should be pessimistic
  *
@@ -99,78 +99,80 @@ export const defaultOptions = {
  *                                with `curResources` to dictate which resources are updated
  *                                with what new properties.
  */
-const patchResources = (
+function patchResources(
   namespace,
   endpoint,
   options,
   // params specific to this action
   curResources,
   newProperties,
-) => async (dispatch, getState) => {
-  const computedOptions = {
-    ...defaultOptions,
-    ...options,
-    ...(options || {}).PATCH,
-  }
-  const {
-    debug,
-    handlePatchFailure,
-    patchFunc,
-    patchOptimistic,
-    patchRequestDataToDataArray,
-    patchResponsesToData,
-    patchTargetsToRequestDataArray,
-  } = computedOptions
-  const debugLog = createDebugLog(debug)
-  debugLog('DEBUG autoReduxApi: `patchResources` (1 of 3) arguments:', {
-    namespace, endpoint, options, curResources, newProperties, computedOptions,
-  })
-  if (typeof patchFunc !== 'function') {
-    throw new Error('In `autoReduxApi`, `patchFunc` not specified; Must be a function')
-  }
-  const getActionType = phase => `${namespace}/${patchOptimistic
-    ? 'OPT'
-    : 'PESS'
-  }_PATCH_${phase}`
-  const targetResources = curResources instanceof Array ? curResources : [curResources]
-  const targetNewProperties = curResources instanceof Array ? newProperties : [newProperties]
-
-  const requestDataObjs = patchTargetsToRequestDataArray(
-    computedOptions, targetResources, targetNewProperties,
-  )
-  debugLog('DEBUG autoReduxApi: `patchResources` (2 of 3) computedValues:', { requestDataObjs })
-
-  R.forEach(async (requestData) => {
-    const data = patchRequestDataToDataArray(computedOptions, requestData)
-    dispatch({ data, requestData, type: getActionType('START') })
-    // handle error within this Redux slice in case rollbacks need to happen
-    const handleError = (failureData, error, requestData) => {
-      dispatch({
-        data: failureData, error, requestData, type: getActionType('FAIL'),
-      })
+) {
+  return async (dispatch, getState) => {
+    const computedOptions = {
+      ...defaultOptions,
+      ...options,
+      ...(options || {}).PATCH,
     }
-    try {
-      const response = await patchFunc(endpoint, requestData)
-      const { successData, failureData } = patchResponsesToData(computedOptions, data, response)
-      debugLog('DEBUG autoReduxApi: `patchResources` (3 of 3)', { successData, failureData })
+    const {
+      debug,
+      handlePatchFailure,
+      patchFunc,
+      patchOptimistic,
+      patchRequestDataToDataArray,
+      patchResponsesToData,
+      patchTargetsToRequestDataArray,
+    } = computedOptions
+    const debugLog = createDebugLog(debug)
+    debugLog('DEBUG autoReduxApi: `patchResources` (1 of 3) arguments:', {
+      namespace, endpoint, options, curResources, newProperties, computedOptions,
+    })
+    if (typeof patchFunc !== 'function') {
+      throw new Error('In `autoReduxApi`, `patchFunc` not specified; Must be a function')
+    }
+    const getActionType = phase => `${namespace}/${patchOptimistic
+      ? 'OPT'
+      : 'PESS'
+    }_PATCH_${phase}`
+    const targetResources = curResources instanceof Array ? curResources : [curResources]
+    const targetNewProperties = curResources instanceof Array ? newProperties : [newProperties]
 
-      if (failureData.length) {
-        handleError(failureData, null, requestData)
-        handlePatchFailure(computedOptions, null, requestData, response, dispatch, getState)
-      }
-      if (successData.length) {
+    const requestDataObjs = patchTargetsToRequestDataArray(
+      computedOptions, targetResources, targetNewProperties,
+    )
+    debugLog('DEBUG autoReduxApi: `patchResources` (2 of 3) computedValues:', { requestDataObjs })
+
+    R.forEach(async (requestData) => {
+      const data = patchRequestDataToDataArray(computedOptions, requestData)
+      dispatch({ data, requestData, type: getActionType('START') })
+      // handle error within this Redux slice in case rollbacks need to happen
+      const handleError = (failureData, error, requestData) => {
         dispatch({
-          data: successData,
-          requestData,
-          responseData: response.data,
-          type: getActionType('SUCCESS'),
+          data: failureData, error, requestData, type: getActionType('FAIL'),
         })
       }
-    } catch (error) {
-      // full failure
-      handleError(data, error)
-      handlePatchFailure(computedOptions, error, requestData, null, dispatch, getState)
-    }
-  }, R.values(requestDataObjs))
+      try {
+        const response = await patchFunc(endpoint, requestData)
+        const { successData, failureData } = patchResponsesToData(computedOptions, data, response)
+        debugLog('DEBUG autoReduxApi: `patchResources` (3 of 3)', { successData, failureData })
+
+        if (failureData.length) {
+          handleError(failureData, null, requestData)
+          handlePatchFailure(computedOptions, null, requestData, response, dispatch, getState)
+        }
+        if (successData.length) {
+          dispatch({
+            data: successData,
+            requestData,
+            responseData: response.data,
+            type: getActionType('SUCCESS'),
+          })
+        }
+      } catch (error) {
+        // full failure
+        handleError(data, error)
+        handlePatchFailure(computedOptions, error, requestData, null, dispatch, getState)
+      }
+    }, R.values(requestDataObjs))
+  }
 }
 export default { patchResources }

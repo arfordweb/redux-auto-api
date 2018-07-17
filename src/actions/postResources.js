@@ -94,77 +94,79 @@ export const defaultOptions = {
  * @param {Array} newResources      Supplied when dispatched: The new properties to patch the
  *                                  resource with
  */
-const postResources = (
+function postResources(
   namespace,
   endpoint,
   options,
   // params specific to this action
   newResources,
-) => async (dispatch, getState) => {
-  const computedOptions = {
-    ...defaultOptions,
-    ...options,
-    ...(options || {}).POST,
-  }
-  const {
-    debug,
-    handlePatchFailure,
-    postFunc,
-    postOptimistic,
-    postRequestDataToDataArray,
-    postResponsesToData,
-    postResourcesToRequestDataArray,
-  } = computedOptions
-  const debugLog = createDebugLog(debug)
-  debugLog('DEBUG autoReduxApi: `postResources` (1 of 3) arguments:', {
-    namespace, endpoint, options, newResources, computedOptions,
-  })
-  if (typeof postFunc !== 'function') {
-    throw new Error('In `autoReduxApi`, `postFunc` not specified; Must be a function')
-  }
-  const getActionType = phase => `${namespace}/${postOptimistic ? 'OPT' : 'PESS'}_POST_${phase}`
-
-  const rawResources = newResources instanceof Array ? newResources : [newResources]
-  const requestDataObjs = postResourcesToRequestDataArray(computedOptions, rawResources)
-  debugLog('DEBUG autoReduxApi: `postResources` (2 of 3)', {
-    computedValues: { requestDataObjs },
-  })
-
-  R.forEach(async (requestData) => {
-    // This data may optimistically contain IDs which won't be set to the server
-    const data = postRequestDataToDataArray(computedOptions, rawResources, requestData)
-    dispatch({ data, requestData, type: getActionType('START') })
-
-    // error handling helper
-    const handleError = (failureData, error, requestData) => {
-      dispatch({
-        data: failureData, error, requestData, type: getActionType('FAIL'),
-      })
+) {
+  return async (dispatch, getState) => {
+    const computedOptions = {
+      ...defaultOptions,
+      ...options,
+      ...(options || {}).POST,
     }
+    const {
+      debug,
+      handlePatchFailure,
+      postFunc,
+      postOptimistic,
+      postRequestDataToDataArray,
+      postResponsesToData,
+      postResourcesToRequestDataArray,
+    } = computedOptions
+    const debugLog = createDebugLog(debug)
+    debugLog('DEBUG autoReduxApi: `postResources` (1 of 3) arguments:', {
+      namespace, endpoint, options, newResources, computedOptions,
+    })
+    if (typeof postFunc !== 'function') {
+      throw new Error('In `autoReduxApi`, `postFunc` not specified; Must be a function')
+    }
+    const getActionType = phase => `${namespace}/${postOptimistic ? 'OPT' : 'PESS'}_POST_${phase}`
 
-    try {
-      const response = await postFunc(endpoint, requestData)
-      const { successData, failureData } = postResponsesToData(computedOptions, data, response)
-      debugLog('DEBUG autoReduxApi: `postResources` (3 of 3)', { successData, failureData })
+    const rawResources = newResources instanceof Array ? newResources : [newResources]
+    const requestDataObjs = postResourcesToRequestDataArray(computedOptions, rawResources)
+    debugLog('DEBUG autoReduxApi: `postResources` (2 of 3)', {
+      computedValues: { requestDataObjs },
+    })
 
-      if (failureData.length) {
-        handleError(failureData, null, requestData)
-        handlePatchFailure(computedOptions, null, requestData, response, dispatch, getState)
-      }
-      if (successData.length) {
+    R.forEach(async (requestData) => {
+      // This data may optimistically contain IDs which won't be set to the server
+      const data = postRequestDataToDataArray(computedOptions, rawResources, requestData)
+      dispatch({ data, requestData, type: getActionType('START') })
+
+      // error handling helper
+      const handleError = (failureData, error, requestData) => {
         dispatch({
-          data: successData,
-          requestData,
-          responseData: successData,
-          type: getActionType('SUCCESS'),
+          data: failureData, error, requestData, type: getActionType('FAIL'),
         })
       }
-    } catch (error) {
-      dispatch({
-        data, error, requestData, type: getActionType('FAIL'),
-      })
-      handlePatchFailure(computedOptions, error, requestData, null, dispatch, getState)
-    }
-  }, R.values(requestDataObjs))
+
+      try {
+        const response = await postFunc(endpoint, requestData)
+        const { successData, failureData } = postResponsesToData(computedOptions, data, response)
+        debugLog('DEBUG autoReduxApi: `postResources` (3 of 3)', { successData, failureData })
+
+        if (failureData.length) {
+          handleError(failureData, null, requestData)
+          handlePatchFailure(computedOptions, null, requestData, response, dispatch, getState)
+        }
+        if (successData.length) {
+          dispatch({
+            data: successData,
+            requestData,
+            responseData: successData,
+            type: getActionType('SUCCESS'),
+          })
+        }
+      } catch (error) {
+        dispatch({
+          data, error, requestData, type: getActionType('FAIL'),
+        })
+        handlePatchFailure(computedOptions, error, requestData, null, dispatch, getState)
+      }
+    }, R.values(requestDataObjs))
+  }
 }
 export default { postResources }

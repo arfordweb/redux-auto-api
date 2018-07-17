@@ -26,50 +26,52 @@ export const defaultOptions = {
  *
  * @param {object} params         Query parameters
  */
-const getResources = (
+function getResources(
   namespace,
   endpoint,
   options,
   // params specific to this action
   params,
-) => async (dispatch, getState) => {
-  const computedOptions = {
-    ...options,
-    ...(options || {}).GET,
-  }
-  const {
-    debug,
-    getFunc,
-    handleGetSuccess,
-  } = computedOptions
-  const debugLog = createDebugLog(debug)
-  debugLog('DEBUG autoReduxApi: `getResources` (1 of 1) arguments:', {
-    namespace, endpoint, options, params, computedOptions,
-  })
-  if (typeof getFunc !== 'function') {
-    throw new Error('In `autoReduxApi`, `getFunc` not specified; Must be a function')
-  }
-  const getActionType = phase => `${namespace}/PESS_GET_${phase}`
-  dispatch({
-    params,
-    type: getActionType('START'),
-  })
-  try {
-    const response = await getFunc(endpoint, { params })
-    dispatch({
-      type: getActionType('SUCCESS'),
-      data: response.data,
-      // the following are for debugging
-      params,
+) {
+  return async (dispatch, getState) => {
+    const computedOptions = {
+      ...options,
+      ...(options || {}).GET,
+    }
+    const {
+      debug,
+      getFunc,
+      handleGetSuccess,
+    } = computedOptions
+    const debugLog = createDebugLog(debug)
+    debugLog('DEBUG autoReduxApi: `getResources` (1 of 1) arguments:', {
+      namespace, endpoint, options, params, computedOptions,
     })
-    handleGetSuccess(response, params, dispatch, getState)
-  } catch (error) {
+    if (typeof getFunc !== 'function') {
+      throw new Error('In `autoReduxApi`, `getFunc` not specified; Must be a function')
+    }
+    const getActionType = phase => `${namespace}/PESS_GET_${phase}`
     dispatch({
-      type: getActionType('FAIL'),
-      // for debugging
-      error,
       params,
+      type: getActionType('START'),
     })
+    try {
+      const response = await getFunc(endpoint, { params })
+      dispatch({
+        type: getActionType('SUCCESS'),
+        data: response.data,
+        // the following are for debugging
+        params,
+      })
+      handleGetSuccess(response, params, dispatch, getState)
+    } catch (error) {
+      dispatch({
+        type: getActionType('FAIL'),
+        // for debugging
+        error,
+        params,
+      })
+    }
   }
 }
 export default { getResources }
