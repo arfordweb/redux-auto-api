@@ -4,6 +4,7 @@ import { createDebugLog } from '../utils'
 export const defaultOptions = {
   debug: false,
   handleGetSuccess: Function.prototype,
+  namespaceSeparator: '/',
 }
 
 /**
@@ -24,6 +25,9 @@ export const defaultOptions = {
  *                                      to perform another task on GET success, including
  *                                      dispatching other actions
  *
+ *                                    - {string} namespaceSeparator - (Defaults to '/')
+ *                                      Separator between the namespace and the action type name
+ *
  * @param {object} params         Query parameters
  */
 function getResources(
@@ -43,6 +47,7 @@ function getResources(
       debug,
       getFunc,
       handleGetSuccess,
+      namespaceSeparator,
     } = computedOptions
     const debugLog = createDebugLog(debug)
     debugLog('DEBUG autoReduxApi: `getResources` (1 of 1) arguments:', {
@@ -51,7 +56,7 @@ function getResources(
     if (typeof getFunc !== 'function') {
       throw new Error('In `autoReduxApi`, `getFunc` not specified; Must be a function')
     }
-    const getActionType = phase => `${namespace}/PESS_GET_${phase}`
+    const getActionType = phase => `${namespace}${namespaceSeparator}PESS_GET_${phase}`
     dispatch({
       params,
       type: getActionType('START'),

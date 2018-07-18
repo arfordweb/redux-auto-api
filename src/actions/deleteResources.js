@@ -50,6 +50,7 @@ export const defaultOptions = {
   ],
   handleDeleteFailure: Function.prototype,
   idKey: 'id',
+  namespaceSeparator: '/',
 }
 
 /**
@@ -104,6 +105,9 @@ export const defaultOptions = {
  *                                      A function you can specify if you'd like to do something in
  *                                      response to a DELETE failure, like show an error to the user
  *
+ *                                    - {string} namespaceSeparator - (Defaults to '/')
+ *                                      Separator between the namespace and the action type name
+ *
  *                                    - Other - If a custom `deleteTargetsToRequestDataArray`
  *                                      function requires options, they can also be specified
  *
@@ -130,6 +134,7 @@ function deleteResources(
       deleteTargetsToRequestDataArray,
       deleteRequestDataToDataArray,
       handleDeleteFailure,
+      namespaceSeparator,
     } = computedOptions
     const debugLog = createDebugLog(debug)
     debugLog('DEBUG autoReduxApi: `deleteResources` (1 of 2) arguments:', {
@@ -138,7 +143,7 @@ function deleteResources(
     if (typeof deleteFunc !== 'function') {
       throw new Error('In `autoReduxApi`, `deleteFunc` not specified; Must be a function')
     }
-    const getActionType = phase => `${namespace}/${deleteOptimistic
+    const getActionType = phase => `${namespace}${namespaceSeparator}${deleteOptimistic
       ? 'OPT'
       : 'PESS'
     }_DELETE_${phase}`

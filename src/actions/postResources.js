@@ -18,6 +18,7 @@ const getFakeIdStr = () => {
 export const defaultOptions = {
   handlePatchFailure: Function.prototype,
   idKey: 'id',
+  namespaceSeparator: '/',
   newResourceCombiner: ({ idKey }, newResource, apiResponseResource) => ({
     ...newResource,
     [idKey]: String(apiResponseResource[idKey]),
@@ -128,6 +129,7 @@ function postResources(
     const {
       debug,
       handlePatchFailure,
+      namespaceSeparator,
       postFunc,
       postOptimistic,
       postRequestDataToDataArray,
@@ -141,7 +143,10 @@ function postResources(
     if (typeof postFunc !== 'function') {
       throw new Error('In `autoReduxApi`, `postFunc` not specified; Must be a function')
     }
-    const getActionType = phase => `${namespace}/${postOptimistic ? 'OPT' : 'PESS'}_POST_${phase}`
+    const getActionType = phase => `${namespace}${namespaceSeparator}${postOptimistic
+      ? 'OPT'
+      : 'PESS'
+    }_POST_${phase}`
 
     const rawResources = newResources instanceof Array ? newResources : [newResources]
     const requestDataObjs = postResourcesToRequestDataArray(computedOptions, rawResources)

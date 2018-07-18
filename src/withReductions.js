@@ -12,13 +12,9 @@ import { flattenFuncMap } from './utils'
  *   idea of a campaign, adGroup, etc.
  */
 
-
-/*
- * To do while applying this module:
- * 1. rename all `updatedObjectHistory` instances to `prePatchResources`
- * 2. rename all `UPDATE_*` actions used with this module to `PATCH_*`
- */
-
+const defaultOptions = {
+  namespaceSeparator: '/',
+}
 
 /**
  * Helper function to validate inputs to `withReductions`
@@ -81,10 +77,15 @@ const validateHorParams = (reducer, operationReducers) => {
 const withReductions = (
   namespace,
   operationReducers,
-  options = {},
+  options,
 ) => (baseReducer = identity) => {
   validateHorParams(baseReducer, operationReducers)
-  const reducerFuncMap = flattenFuncMap(operationReducers, namespace)
+  const computedOptions = {
+    ...defaultOptions,
+    ...options,
+  }
+  const { namespaceSeparator } = computedOptions
+  const reducerFuncMap = flattenFuncMap(operationReducers, `${namespace}${namespaceSeparator}`)
 
   return (state, action) => {
     const baseInitialState = baseReducer(undefined, action)

@@ -11,6 +11,7 @@ import { createDebugLog } from '../utils'
 export const defaultOptions = {
   debug: false,
   handlePatchFailure: Function.prototype,
+  namespaceSeparator: '/',
   patchOptimistic: true,
   patchResponsesToData: (options, patchData = []) => patchData,
   patchTargetsToRequestDataArray: (
@@ -34,6 +35,9 @@ export const defaultOptions = {
  * @param {object} options        Supplied by generateActions: Options
  *                                  - {boolean} debug - Set to `true` if you wish to see debug
  *                                    messages associated with your resources patching
+ *
+ *                                  - {string} namespaceSeparator - (Defaults to '/')
+ *                                    Separator between the namespace and the action type name
  *
  *                                  - {function} handlePatchFailure - (Default to a noop)
  *                                      A function that accepts arguments:
@@ -116,6 +120,7 @@ function patchResources(
     const {
       debug,
       handlePatchFailure,
+      namespaceSeparator,
       patchFunc,
       patchOptimistic,
       patchRequestDataToDataArray,
@@ -129,7 +134,7 @@ function patchResources(
     if (typeof patchFunc !== 'function') {
       throw new Error('In `autoReduxApi`, `patchFunc` not specified; Must be a function')
     }
-    const getActionType = phase => `${namespace}/${patchOptimistic
+    const getActionType = phase => `${namespace}${namespaceSeparator}${patchOptimistic
       ? 'OPT'
       : 'PESS'
     }_PATCH_${phase}`

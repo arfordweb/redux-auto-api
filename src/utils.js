@@ -7,20 +7,18 @@ import { forEach, toPairs } from 'ramda'
  * from a possibly nested set of objects with reducer functions referenced by action names.
  * @param  {object} operationReducers May have nested objects indexed by any key or reducer
  *                                    functions indexed by action names
- * @param  {string} namespace         The Redux namespace for the resource
+ * @param  {string} prefix            The prefix to prepend to the action type string
  * @return {object}                   Array of reducer functions, indexed by Redux action types
  */
-export function flattenFuncMap(deepFuncMap, namespace) {
+export function flattenFuncMap(deepFuncMap, prefix = '') {
   let outFuncMap = {}
-  const namespacePrefix = namespace ? `${namespace}/` : ''
   forEach(([actionName, funcOrMap]) => {
     if (typeof funcOrMap === 'function') {
-      const actionType = `${namespacePrefix}${actionName}`
-      outFuncMap[actionType || actionName] = funcOrMap
+      outFuncMap[`${prefix}${actionName}`] = funcOrMap
     } else if (typeof funcOrMap === 'object') {
       outFuncMap = {
         ...outFuncMap,
-        ...flattenFuncMap(funcOrMap, namespace),
+        ...flattenFuncMap(funcOrMap, prefix),
       }
     }
   }, toPairs(deepFuncMap))
