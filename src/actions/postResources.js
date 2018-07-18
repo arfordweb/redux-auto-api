@@ -81,6 +81,7 @@ export const defaultOptions = {
  *
  *                                      - {function} patchFunc - (Required) A function that accepts
  *                                        the arguments (endpoint, params) and returns a Promise
+ *                                        that resolves with a response object
  *
  *                                      - {boolean} postOptimistic - (Defaults to true) Whether to
  *                                        use the optimistic Redux action types; Otherwise, uses
@@ -91,14 +92,17 @@ export const defaultOptions = {
  *                                        API response to each)
  *                                          A function that accepts arguments:
  *
- *                                            - {object} prefix - The prefix to prefix the
- *                                              action types with
+ *                                            - {object} options - The same options passed to
+ *                                              `postResources`
  *
  *                                            - {Array} postData - The data that was posted
  *
  *                                            - {object} response - The API response in an object,
  *                                              preferably containing data with the IDs of the newly
  *                                              craeted resources
+ *
+ *                                          Returns an Array of data to be recorded in our Redux
+ *                                          state
  *
  *                                      - {function} postResourcesToRequestDataArray - (Defaults to
  *                                        a function that just returns the newResources argument)
@@ -109,6 +113,9 @@ export const defaultOptions = {
  *
  *                                            - {Array} newResources - New resource objects to be
  *                                              posted
+ *
+ *                                          Returns an Array of literals to be send as JSON
+ *                                          in the body of associated POST requests
  *
  * @param {Array} newResources      Supplied when dispatched: The new properties to patch the
  *                                  resource with
