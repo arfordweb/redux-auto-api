@@ -85,11 +85,29 @@ export const defaultOptions = {
  *                                        use the optimistic Redux action types; Otherwise, uses
  *                                        pessimistic action types
  *
- *                                      - {function} postResponsesToData TODO: NOW
+ *                                      - {function} postResponsesToData (Defaults to function that
+ *                                        returns the posted resources with the ID added from the
+ *                                        API response to each)
+ *                                          A function that accepts arguments:
  *
- *                                      - {function} postResourcesToDataArrays TODO: NOW
+ *                                            - {object} prefix - The prefix to prefix the
+ *                                              action types with
  *
- *                                      - {function} postResourcesToRequestDataArray TODO: NOW
+ *                                            - {Array} postData - The data that was posted
+ *
+ *                                            - {object} response - The API response in an object,
+ *                                              preferably containing data with the IDs of the newly
+ *                                              craeted resources
+ *
+ *                                      - {function} postResourcesToRequestDataArray - (Defaults to
+ *                                        a function that just returns the newResources argument)
+ *                                          A function that accepts arguments:
+ *
+ *                                            - {object} options - Same options passed to
+ *                                              `postResources`
+ *
+ *                                            - {Array} newResources - New resource objects to be
+ *                                              posted
  *
  * @param {Array} newResources      Supplied when dispatched: The new properties to patch the
  *                                  resource with
